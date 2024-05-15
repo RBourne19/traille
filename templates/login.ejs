@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap');
+    </style>
+    <link rel="stylesheet" type="text/css" href="/css/login.css" />
+</head>
+<body>
+    <h1>Login</h1>
+    <form id="login-form" action="/login" method="POST">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Login</button>
+    </form>
+    <div>
+        Don't have an account? <a href="/register">Register here</a>
+    </div>
+    <div id="error">
+
+    </div>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            if (username.length < 3) {
+                document.getElementById("error").innerText = "Username must be longer than two characters";
+                return;
+            };
+            const password = document.getElementById('password').value;
+            if (password.length < 5) {
+                document.getElementById("error").innerText = "Password must be longer than four characters";
+                return;
+            };
+            const params = new URLSearchParams(window.location.search);
+
+            const redirect = params.get("redirect") ? params.get("redirect") : "/";
+            const res = await fetch(`/login?redirect=${redirect}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+            const json = await res.json();
+            if (json.error){
+                document.getElementById("error").innerText = json.error;
+            } else{
+                console.log(json.url);
+                window.location.href = json.url;
+            }
+            
+        });
+    </script>
+</body>
+</html>

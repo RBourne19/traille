@@ -1,0 +1,12 @@
+html{
+    font-family: "Hind", sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    text-align: center;
+}
+#login-form, #register-form{
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+}

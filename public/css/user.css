@@ -1,0 +1,18 @@
+.user-header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    text-align: center;
+    margin: 10px 0px;
+}
+.follower-button{
+    height: 40px;
+}
+.followed{
+    color: rgb(238, 238, 238);
+    background-color: rgb(118, 136, 91);
+}
+.not-followed{
+    background-color: rgb(238, 238, 238);
+    color: rgb(118, 136, 91)
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Map Example</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap');
+    </style>
+    <link rel="stylesheet" type="text/css" href="/css/test.css" />
+</head>
+<body>
+    <div class="header">
+        <a href="/">
+          Home  
+        </a>
+        <a href="/createPost">
+            Create a Post
+        </a>
+        <div id="search-box">
+            <input type="text" id="search" placeholder="Search">
+            <div id="results">
+
+            </div>
+        </div>
+        
+        <script>
+            const searchBar = document.getElementById("search");
+            let timer;
+            searchBar.addEventListener(("input"), async (e) => {
+                const name = searchBar.value;
+                if (!(name.length > 2)) return;
+                clearTimeout(timer);
+                timer = setTimeout(async () => {
+                    
+                    const res = await fetch(`/user/query/${name}`);
+                    const names = await res.json();
+                    const results = document.getElementById("results");
+                    results.innerHTML = "";
+                    if (names.length == 0){
+                        console.log(names);
+                        results.innerHTML = `<div class="search-result">No results</div>`;
+                    }
+                    names.forEach((x) => {
+                        results.innerHTML += `<a  href="/user/${x.name}"><div class="search-result">${x.name}</div></a>`
+                    })
+                }, 700);
+                
+            });
+        </script>
+    </div>
+    <div id="map"></div>
+    <div>
+        
+
+        <div class="entry">
+            <div>
+                <div class="entry-title" id="title"></div>
+                <div class="entry-desc" id="desc"></div>
+            </div>
+            
+            <div class="button-container">
+                <div class="arrow-container"onclick="previousEntry()">
+                    <div  class="arrow left"></div>
+                    <div>Previous entry</div>
+                </div>
+                <div class="arrow-container" onclick="nextEntry()">
+                    <div >Next entry</div>
+                    <div class="arrow right"></div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBt7zxTCL2Sma9O1gQPpgqbgVGrF2ZmbFg&callback=initMap">
+    </script>
+
+    <script>
+        let map;
+        let points = <%- points %>;
+        let currIdx = 0;
+        let currentPoint = points[currIdx];
+        async function initMap() {
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+            
+            map = new google.maps.Map(
+                document.getElementById('map'), { zoom: 12, 
+                    center: {lat: points[0].lat, lng: points[0].lng},
+                    mapId: '835c17c142c9e675'});
+                    
+            let pathPoints = [];      
+            points.forEach((x, idx) => {
+                pathPoints.push({lat: x.lat, lng: x.lng})
+                placeMarker({lat: x.lat, lng: x.lng}, x.title, idx);
+            });
+            updateView();
+                function placeMarker(location, title, idx) {
+                    const pinBackground = new google.maps.marker.PinElement({
+                        background: "#FFFFFF",
+                        borderColor: "#000000",
+                        glyphColor: "#000000"
+                    });
+                    let marker = new google.maps.marker.AdvancedMarkerElement({
+                        position: location, 
+                        map: map,
+                        title: title,
+                        content: pinBackground.element,
+                    });
+                    marker.idx = idx;
+                    const infoWindow = new google.maps.InfoWindow();
+                    marker.addListener("click", ({ domEvent, latLng }) => {
+                        infoWindow.close();
+                        currIdx = marker.idx;
+                        updateView();
+                        infoWindow.setContent(marker.title);
+                        infoWindow.open(marker.map, marker);
+                        
+                    });     
+                     
+            }
+            const path = new google.maps.Polyline({
+                path: pathPoints,
+                geodesic: true,
+                strokeColor: "#000000",
+                strokeOpacity: 1.0,
+                strokeWeight: 4,
+            })
+            path.setMap(map);
+        }
+        //update viewed list
+        function updateView(){
+        
+            const title = document.getElementById("title");
+            const desc = document.getElementById("desc");
+            currentPoint = points[currIdx];
+            map.panTo({lat: currentPoint.lat, lng: currentPoint.lng});
+            title.innerText = currentPoint.title;
+            desc.innerText = currentPoint.desc;
+        }
+        function nextEntry(){
+            if (currIdx< points.length - 1){
+                currIdx += 1;
+                updateView();
+            }
+            
+        }
+
+        function previousEntry(){
+            if (currIdx > 0){
+                currIdx -= 1;
+                updateView();
+            }
+            
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Map Example</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap');
+    </style>
+    <link rel="stylesheet" type="text/css" href="/css/test.css" />
+</head>
+<body>
+    
+    <div class="header">
+        <a href="/">
+          Home  
+        </a>
+        <a href="/createPost">
+            Create a Post
+        </a>
+        <div id="search-box">
+            <input type="text" id="search" placeholder="Search">
+            <div id="results">
+
+            </div>
+        </div>
+        
+        <script>
+            const searchBar = document.getElementById("search");
+            let timer;
+            searchBar.addEventListener(("input"), async (e) => {
+                const name = searchBar.value;
+                if (!(name.length > 2)) return;
+                clearTimeout(timer);
+                timer = setTimeout(async () => {
+                    
+                    const res = await fetch(`/user/query/${name}`);
+                    const names = await res.json();
+                    const results = document.getElementById("results");
+                    results.innerHTML = "";
+                    if (names.length == 0){
+                        console.log(names);
+                        results.innerHTML = `<div class="search-result">No results</div>`;
+                    }
+                    names.forEach((x) => {
+                        results.innerHTML += `<a  href="/user/${x.name}"><div class="search-result">${x.name}</div></a>`
+                    })
+                }, 700);
+                
+            });
+        </script>
+    </div>
+    <div id="map"></div>
+    
+    <div class="post-button-container">
+        <div id="count">0/8</div>
+        <button class="post-button" onclick="postTrail()">Post</button>
+        <div id="error" style="color: red;"></div>
+
+    </div>
+    <div><!--Not using list cause I dont like it-->
+        
+        <div id="travel-list">
+            
+        </div>
+
+    </div>
+    
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBt7zxTCL2Sma9O1gQPpgqbgVGrF2ZmbFg&callback=initMap">
+    </script>
+
+    <script>
+        let map;
+        let markers = [];        
+        let path;
+        async function initMap() {
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+            let center = { lat: 38.9869, lng: -76.9426 };
+            map = new google.maps.Map(document.getElementById('map'), { 
+                    zoom: 12, 
+                    center: center,
+                    mapId: '835c17c142c9e675'});
+            
+            google.maps.event.addListener(map, 'click', function(event) {
+                if (markers.length <= 8){
+                    placeMarker(event.latLng);
+                } else {
+                    document.getElementById("error").innerText = "You have reached the max number of entries.";
+                }
+                
+            });
+            function placeMarker(location) {
+                const pinBackground = new google.maps.marker.PinElement({
+                    background: "#FFFFFF",
+                    borderColor: "#000000",
+                    glyphColor: "#000000"
+                });
+                let marker = new google.maps.marker.AdvancedMarkerElement({
+                    position: location, 
+                    map: map,
+                    title: ``,
+                    content: pinBackground.element,
+                });
+                const infoWindow = new google.maps.InfoWindow();
+                marker.desc = "";
+                markers.push(marker);
+                marker.addListener("click", ({ domEvent, latLng }) => {
+                    infoWindow.close();
+                    infoWindow.setContent(marker.title);
+                    infoWindow.open(marker.map, marker);
+                });
+                
+                updateList();
+            }
+        }
+        //update viewed list
+        function updateList(){
+            const list = document.getElementById("travel-list");
+            list.innerHTML = "";
+            //god if only there were thousands of javascript frameworks for this
+            markers.forEach((x, idx) => {
+                list.innerHTML += `<div id="travel-entry-${idx}" class="post-entry">
+                <div id="title" class="post-title"><div><input id="title-text-${idx}" class="entry-title" placeholder="Title" value="${x.title}"type="text"></div><div class="post-del" onclick="deleteEntry(${idx})">&#10006;</div></div>
+                <div>
+                    <textarea class="post-desc" placeholder="Description" id="desc-${idx}"cols="70">${x.desc}</textarea>
+                </div>
+                </div>`;
+                
+            });
+            //only works when they are in seperate loops
+            //think cause html is rendered after the loop
+            if (path)path.setMap(null);
+            let pathPoints = [];
+            markers.forEach((x, idx) => {
+                let editable = document.getElementById(`title-text-${idx}`);
+                editable.addEventListener("input", function() {
+                    markers[idx].title = editable.value;
+                });
+                let desc = document.getElementById(`desc-${idx}`);
+                desc.addEventListener("input", function() {
+                    markers[idx].desc = desc.value;
+                });
+                pathPoints.push(x.position)
+
+            });
+            
+            path = new google.maps.Polyline({
+                path: pathPoints,
+                geodesic: true,
+                strokeColor: "#000000",
+                strokeOpacity: 1.0,
+                strokeWeight: 4,
+            })
+            path.setMap(map);
+            document.getElementById("count").innerText = `${markers.length}/8`
+        }
+        function deleteEntry(idx){
+            markers[idx].map = null;
+            path.setMap(null);
+            markers.splice(idx, 1);
+            updateList();
+        }
+
+        async function postTrail(){
+            if (markers < 1) {
+                document.getElementById("error").innerText = "Must have one entry";
+                return;
+            };
+            let points = [];
+            markers.forEach((x, idx) =>{
+                let point = {};
+                point.title = markers[idx].title;
+                point.desc = document.getElementById(`desc-${idx}`).value;
+                point.lat = markers[idx].position.lat;
+                point.lng = markers[idx].position.lng;
+                points.push(point);
+            });
+            const res = await fetch(`/post`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({points}),
+            });
+            const json = await res.json();
+            if (json.error){
+                document.getElementById("error").innerText = json.error;
+            }else {
+                window.location.href = `/post/${json.postId}`;
+            }
+            return false;
+
+        }
+        
+    </script>
+</body>
+</html>
