@@ -50,8 +50,8 @@
         </script>
     </div>
     <div id="map"></div>
-    <div id="signout" onclick="signOut()" style="text-align: center; width: fit-content;">
-        <a href="/">
+    <div id="signout"  style="text-align: center; width: fit-content;">
+        <a href="" onclick="signOut()">
            
             Sign out
             
@@ -61,6 +61,7 @@
     <script>
         function signOut(){
             document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
         }
     </script>
     <div>
