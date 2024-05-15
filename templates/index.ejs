@@ -50,6 +50,19 @@
         </script>
     </div>
     <div id="map"></div>
+    <div id="signout" onclick="signOut()" style="text-align: center; width: fit-content;">
+        <a href="/">
+           
+            Sign out
+            
+        </a>
+    </div>
+    
+    <script>
+        function signOut(){
+            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+    </script>
     <div>
         <div class="title-container">
                 <div class="button-container">
