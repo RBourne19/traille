@@ -30,7 +30,7 @@ router.get('/', validateJWT, async (req, res) => {
             posts.push(post);
         }
     }
-    res.render("index", {posts: JSON.stringify(posts)});
+    res.render("index", {name: req.user.name, posts: JSON.stringify(posts)});
 })
 
 
