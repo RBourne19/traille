@@ -29,7 +29,10 @@
             let timer;
             searchBar.addEventListener(("input"), async (e) => {
                 const name = searchBar.value;
-                if (!(name.length > 2)) return;
+                if (!(name.length > 2)) {
+                    results.innerHTML = ""; 
+                    return;
+                }
                 clearTimeout(timer);
                 timer = setTimeout(async () => {
                     
