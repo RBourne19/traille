@@ -5,8 +5,8 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require("cookie-parser");
-const frontend = require("./routes/frontRoutes");
-const backend = require("./routes/backRoutes").router;
+const frontend = require("./routes/pages");
+const backend = require("./routes/api").router;
 const app = express();
 const PORT = process.env.PORT || 3000;
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const validateJWT = require("./backRoutes").validateJWT;
+const validateJWT = require("./api").validateJWT;
 const cookieParser = require("cookie-parser");
 const {userSchema, postSchema} = require('../schema');
 const mongoose = require('mongoose');
@@ -13,24 +13,32 @@ router.use(express.static(__dirname + '/public'));
 //not very efficient but it works for now
 router.get('/', validateJWT, async (req, res) => {
     const user = await User.findById(req.user.id, "-_id -password");
-    const following = user.following;
-    let posts = [];
+    //I have no idea why I have to do this here it just works
+    //I thought validating the token would be enough but for some reason
+    // This needs to also be checked or it gets weird
+    if (user){
+        const following = user.following;
+        let posts = [];
 
-    for (let i = 0; i < following.length; i++){
-        const followedPosts = await User.findById(following[i], "-_id posts name");
-        let postId = "";
-        if (followedPosts.posts.length > 0){
-            postId = followedPosts.posts[followedPosts.posts.length - 1];
-            let foundPost = await Post.findById(postId, "-_id -author ");
-            let post = {};
-            post.entries = foundPost.entries;
-            post.title = foundPost.title;
-            post.identifier = foundPost.identifier;
-            post.name = followedPosts.name;
-            posts.push(post);
+        for (let i = 0; i < following.length; i++){
+            const followedPosts = await User.findById(following[i], "-_id posts name");
+            let postId = "";
+            if (followedPosts.posts.length > 0){
+                postId = followedPosts.posts[followedPosts.posts.length - 1];
+                let foundPost = await Post.findById(postId, "-_id -author ");
+                let post = {};
+                post.entries = foundPost.entries;
+                post.title = foundPost.title;
+                post.identifier = foundPost.identifier;
+                post.name = followedPosts.name;
+                posts.push(post);
+            }
         }
+        res.render("index", {name: req.user.name, posts: JSON.stringify(posts)});
+    } else {
+        res.redirect("/login");
     }
-    res.render("index", {name: req.user.name, posts: JSON.stringify(posts)});
+    
 })
 
 
