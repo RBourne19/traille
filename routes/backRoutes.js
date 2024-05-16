@@ -135,6 +135,12 @@ router.post('/unfollow', validateJWT, async (req, res) => {
 
 });
 
+router.get('/signout', validateJWT, async (req, res) => {
+    //probably should do some info validation but oh well
+    res.clearCookie("token");
+    res.redirect("/login");
+});
+
 
 
 //generate JWT token with a 7 day expiration 

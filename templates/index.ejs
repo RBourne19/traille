@@ -53,20 +53,13 @@
         </script>
     </div>
     <div id="map"></div>
-    <div id="signout"  style="text-align: center; width: fit-content;">
-        <a href="" onclick="signOut()">
-           
-            Sign out
-            
-        </a>
-    </div>
+    
+    <a href="/signout">
+        Sign Out
+    </a>
+    <br>
         <a id="account-link" href="">My account</a>
-    <script>
-        function signOut(){
-            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.href = "/";
-        }
-    </script>
+    
     <div>
         <div class="title-container">
                 <div class="button-container">
@@ -202,7 +195,7 @@
             map.panTo({lat: currentPoint.lat, lng: currentPoint.lng});
             entryDesc.innerText = currentPoint.desc;
             entryTitle.innerText = currentPoint.title;
-            postTitle.innerText = posts[postIdx].title
+            postTitle.innerText = "Go to post."
             postLink.href = `/post/${posts[postIdx].identifier}`
             userName.innerText = posts[postIdx].name;
             userLink.href = `/user/${posts[postIdx].name}`
