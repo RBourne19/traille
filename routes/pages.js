@@ -16,6 +16,8 @@ router.get('/', validateJWT, async (req, res) => {
     //I have no idea why I have to do this here it just works
     //I thought validating the token would be enough but for some reason
     // This needs to also be checked or it gets weird
+    //Think cause sometimes token will get validated with invalid users cause I deleted some
+    //This seems to be a local host issue so yeah, COME BACK HERE AFTER FINAL PROJECT
     if (user){
         const following = user.following;
         let posts = [];
